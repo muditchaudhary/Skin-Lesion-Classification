@@ -44,7 +44,7 @@ Current;y contains just the training dataset converted to TF_records. Melanoma_t
 ### Code
 Contains the code for the project
 
-#### TFREcordCreator
+* #### TFREcordCreator
 Contains code for converting raw data to TFrecord for better performance using tf.data API
 
 #### Train
