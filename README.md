@@ -38,14 +38,27 @@ Malignancy diagnosis data were obtained from expert consensus and pathology repo
 
 ## Project Structure
 
-### TFrecord_datasets
-Current;y contains just the training dataset converted to TF_records. Melanoma_training.tfrecords uses float32 for processing the image while Melanoma_training_uint8.tfrecords uses uint8.
-
 ### Code
 Contains the code for the project
 
-#### TFREcordCreator
-Contains code for converting raw data to TFrecord for better performance using tf.data API
+* #### TFRecordCreator
+    ##### Contains code for converting raw data to TFrecord for better performance using tf.data API
+    Change the addresses in TFrecord_writer.py according to your system.
+    Run TFrecord_writer.py to convert image and label dataset to a .tfrecords file
 
-#### Train
-Currently, contains a naive Convolution Neural Network to perform the first classification.
+* #### Train
+    ##### Contains code for training the data, resnet model and to plot the model metrics
+    * resnet.py: Contains the resnet model with 18, 34, 50, 101 and 152 layers
+
+    * Train.py: Contains the training code. Run this to train your model. (Data augmentation still being implemented)
+
+    * plot.py: Plots the graph for the model performance metrics from trainHistoryDict
+
+    * Primitive_train.py: Contains a primitive model to train your data
+
+    * train_resnet.py: Older version of Train.py
+
+
+
+
+
