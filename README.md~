@@ -41,6 +41,7 @@ Malignancy diagnosis data were obtained from expert consensus and pathology repo
 ### Code
 Contains the code for the project
 
+<<<<<<< HEAD
 * #### TFRecordCreator
     ##### Contains code for converting raw data to TFrecord for better performance using tf.data API
     Change the addresses in TFrecord_writer.py according to your system.
@@ -57,4 +58,12 @@ Contains the code for the project
     * Primitive_train.py: Contains a primitive model to train your data
 
     * train_resnet.py: Older version of Train.py
+
+
+
+
+=======
+* #### TFREcordCreator
+Contains code for converting raw data to TFrecord for better performance using tf.data API
+>>>>>>> 2a0f4e328687afea64bd2d2dadace581d440e8d0
 
