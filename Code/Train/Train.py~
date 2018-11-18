@@ -76,11 +76,12 @@ def w_categorical_crossentropy(y_true, y_pred, weights):
     nb_cl = len(weights)
     final_mask = K.zeros_like(y_pred[:, 0])
     y_pred_max = K.max(y_pred, axis=1)
-    y_pred_max = K.reshape(y_pred_max, (K.shape(y_pred)[0], 1))
-    y_pred_max_mat = K.cast(K.equal(y_pred, y_pred_max), K.floatx())
+    y_pred_max = K.expand_dims(y_pred_max, 1)
+    y_pred_max_mat = K.equal(y_pred, y_pred_max)
     for c_p, c_t in product(range(nb_cl), range(nb_cl)):
-        final_mask += (weights[c_t, c_p] * y_pred_max_mat[:, c_p] * y_true[:, c_t])
-    return K.categorical_crossentropy(y_true, y_pred) * final_mask
+
+        final_mask += (K.cast(weights[c_t, c_p],K.floatx()) * K.cast(y_pred_max_mat[:, c_p] ,K.floatx())* K.cast(y_true[:, c_t],K.floatx()))
+    return K.categorical_crossentropy(y_pred, y_true) * final_mask
 
 
 trainImage, trainLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/melanoma_training_244_uint8.tfrecords', 25)
@@ -91,7 +92,7 @@ IM_SIZE = 28
 nb_classes = 2
 
 w_array = np.ones((2,2))
-w_array[1,0] = 6
+w_array[1,0] = 5
 w_array[0,1] = 5
 
 ncce = partial(w_categorical_crossentropy,weights=w_array)
