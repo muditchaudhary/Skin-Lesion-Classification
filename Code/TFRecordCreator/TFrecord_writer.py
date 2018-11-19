@@ -21,7 +21,7 @@ def list_label(path_CSV, file_CSV, path_trainingSet):
     melanoma_image_name_dataset=[]
     non_cancer_image_name_dataset = []
     
-    shuffle_data= True
+    shuffle_data= False
     train_data_path = path_trainingSet
     
     addrs = sorted(glob.glob(train_data_path))
@@ -100,18 +100,11 @@ def write_TF(path, train_addrs,train_labels):
 
 
 def main():
-<<<<<<< HEAD
     image_folder_path ="ISIC-2017_Validation_Data/*.jpg"
     csv_file_path = ""
     csv_file_name = "ISIC-2017_Validation_Part3_GroundTruth.csv"
-    train_filename_path = "/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_224_uint8.tfrecords"
-=======
-    image_folder_path ="/home/mudit/Skin Lesion Classification/ISIC-2017_Validation_Data/*.jpg"
-    csv_file_path = "/home/mudit/Skin Lesion Classification/"
-    csv_file_name = "ISIC-2017_Validation_Part3_GroundTruth.csv"
-    train_filename_path = "/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_uint8.tfrecords"
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
-    
+    train_filename_path = "/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_FalseShuffle_224_uint8.tfrecords"
+
     print("listing label")
     addrs, labels = list_label(csv_file_path, csv_file_name,image_folder_path)
     

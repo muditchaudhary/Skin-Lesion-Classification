@@ -12,8 +12,6 @@ from tensorflow import FixedLenFeature
 import matplotlib.pyplot as plt
 <<<<<<< HEAD
 from tensorflow import keras
-=======
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
 
 print(tf.__version__)
 lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
@@ -45,11 +43,8 @@ ds_train = tf.data.TFRecordDataset('/home/mudit/Skin Lesion Classification/TFrec
 ds_validation = tf.data.TFRecordDataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_uint8.tfrecords').map(_parse_record)
 
 ds_train = ds_train.repeat().batch(batch_size)
-<<<<<<< HEAD
 ds_validation = ds_validation.repeat().batch(150)
-=======
 ds_validation = ds_validation.repeat().batch(batch_size)
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
 
 tensor = ds_train.make_one_shot_iterator().get_next()
 with tf.Session() as session:

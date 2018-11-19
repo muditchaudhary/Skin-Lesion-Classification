@@ -1,10 +1,7 @@
 from __future__ import division
 import tensorflow as tf
 from tensorflow import keras
-<<<<<<< HEAD
-=======
 
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
 import six
 from tensorflow.keras.layers import (
     Input,
@@ -40,13 +37,12 @@ def _conv_bn_relu(**conv_params):
                      kernel_initializer = kernel_initializer,
                      kernel_regularizer=kernel_regularizer)(input)
         return _bn_relu(conv)
-<<<<<<< HEAD
+
 
     return f
-=======
-    
+
     return f    
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
+
 
 def _bn_relu_conv(**conv_params):
 
@@ -162,11 +158,6 @@ def _handle_dim_ordering():
     ROW_AXIS = 1
     COL_AXIS = 2
     CHANNEL_AXIS = 3
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> c2e9d39f27e12a8d028b142ed4224633a2137cc6
 
 def _get_block(identifier):
     if isinstance(identifier, six.string_types):
