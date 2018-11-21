@@ -76,8 +76,8 @@ def w_categorical_crossentropy(y_true, y_pred, weights):
         final_mask += (K.cast(weights[c_t, c_p],K.floatx()) * K.cast(y_pred_max_mat[:, c_p] ,K.floatx())* K.cast(y_true[:, c_t],K.floatx()))
     return K.categorical_crossentropy(y_true, y_pred) * final_mask
 
-trainImage, trainLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_training_224_uint8.tfrecords', 25, True)
-valImage, valLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_FalseShuffle_224_uint8.tfrecords',150, False)
+trainImage, trainLabel = create_dataset('melanoma_training_224_uint8.tfrecords', 25, True)
+valImage, valLabel = create_dataset('Melanoma_validation_FalseShuffle_224_uint8.tfrecords',150, False)
 
 Test = np.genfromtxt('ISIC-2017_Validation_Part3_GroundTruth.csv', delimiter=',', usecols=(1), skip_header=1)
 Test  = Test.tolist()
@@ -97,12 +97,14 @@ IMSIZE = 224
 nb_classes = 2
 
 w_array = np.ones((2,2))
-w_array[1,0] = 5
+w_array[1,0] = 6
 w_array[0,1] = 1
+
+print(w_array)
 
 ncce = partial(w_categorical_crossentropy,weights=w_array)
 
-model = resnet.ResnetBuilder.build_resnet_18((3, IMSIZE, IMSIZE), nb_classes)
+model = resnet.ResnetBuilder.build_resnet_152((3, IMSIZE, IMSIZE), nb_classes)
 
 model.compile(loss=ncce,
               optimizer='adam',
@@ -110,11 +112,9 @@ model.compile(loss=ncce,
 
 print(model.summary())
 
-weight=[1,5]
-
 
 print('Not using data augmentation.')
-history = model.fit(x=trainImage,y=trainLabel, batch_size=None, epochs=1, shuffle=True, validation_data = (valImage,valLabel), steps_per_epoch=80, validation_steps = 1, class_weight=weight, verbose=1)
+history = model.fit(x=trainImage,y=trainLabel, batch_size=None, epochs=40, shuffle=True, validation_data = (valImage,valLabel), steps_per_epoch=80, validation_steps = 1,  verbose=1)
 
 
 print(history.history.keys())
@@ -123,9 +123,8 @@ Preds = model.predict(valImage, steps = 1)
 Preds = np.argmax(Preds, axis = 1)
 print(Preds)
 
-from sklearn.metrics import confusion_matrix
-
-cm = confusion_matrix(Test, Preds)
+import sklearn.metrics
+cm = sklearn.metrics.confusion_matrix(Test, Preds)
 
 print(cm)
 

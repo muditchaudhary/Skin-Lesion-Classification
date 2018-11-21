@@ -12,7 +12,9 @@ import glob
 import tensorflow as tf
 import sys
 import cv2
-
+import random
+import imgaug as ia
+from imgaug import augmenters as iaa
 # In[23]:
 
 
@@ -21,7 +23,7 @@ def list_label(path_CSV, file_CSV, path_trainingSet):
     melanoma_image_name_dataset=[]
     non_cancer_image_name_dataset = []
     
-    shuffle_data= False
+    shuffle_data= True
     train_data_path = path_trainingSet
     
     addrs = sorted(glob.glob(train_data_path))
@@ -49,8 +51,16 @@ def list_label(path_CSV, file_CSV, path_trainingSet):
 
 def load_image(addr):
     img = cv2.imread(addr)
-    img = cv2.resize(img, (224, 224), interpolation = cv2.INTER_CUBIC)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    seq = iaa.Sequential([ iaa.Crop(percent = random.uniform(0.0, 0.2)),
+    iaa.Affine(rotate= random.uniform(-90,-91), shear = random.uniform(-20,20), scale = {"x": 0.8, "y":1.2 }, mode = 'symmetric'),
+    iaa.Flipud(0.5), # horizontally flip 50% of the images
+    iaa.Multiply(random.uniform(0.7,1.3)),
+    iaa.ContrastNormalization(random.uniform(0.7,1.3)),
+    iaa.AddToHueAndSaturation((-0.1,0.1))
+])
+    img = seq.augment_image(img)
+    img = cv2.resize(img, (224, 224), interpolation = cv2.INTER_CUBIC)
     img = img.astype(np.uint8)
     
     return img
@@ -100,10 +110,10 @@ def write_TF(path, train_addrs,train_labels):
 
 
 def main():
-    image_folder_path ="ISIC-2017_Validation_Data/*.jpg"
+    image_folder_path ="/home/mudit/ISIC-2017_Training_Data/*.jpg"
     csv_file_path = ""
-    csv_file_name = "ISIC-2017_Validation_Part3_GroundTruth.csv"
-    train_filename_path = "/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_FalseShuffle_2241_uint8.tfrecords"
+    csv_file_name = "ISIC-2017_Training_Part3_GroundTruth.csv"
+    train_filename_path = "/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_Training_Augmented_224_uint8.tfrecords"
 
     print("listing label")
     addrs, labels = list_label(csv_file_path, csv_file_name,image_folder_path)

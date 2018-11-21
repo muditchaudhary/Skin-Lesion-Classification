@@ -24,9 +24,6 @@ featdef = {
 }
 
 
-# In[80]:
-
-
 def _parse_record (example_proto, clip = False):
     ex = tf.parse_single_example(example_proto, featdef)
     
@@ -40,11 +37,6 @@ def _parse_record (example_proto, clip = False):
     print(im)
     return im, label
     
-
-
-# In[81]:
-
-
 batch_size = 20
 ds_train = tf.data.TFRecordDataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_training_uint8.tfrecords').map(_parse_record)
 
