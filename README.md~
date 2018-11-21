@@ -34,7 +34,8 @@ The number 0 = lesion is nevus or seborrheic keratosis
 The third column of each row pertains to the second classification task (seborrheic keratosis vs. melanoma and nevus) and contains the value 0 or 1.
 The number 1 = lesion is seborrheic keratosis
 The number 0 = lesion is melanoma or nevus
-Malignancy diagnosis data were obtained from expert consensus and pathology report information.
+Malignancy diagnosis data were obtained from expert consensus and pathology report information. Participants are not strictly required to limit development to the training data, and are free to train their algorithm using external data sources. However, any other sources of data in system development must be properly cited in the abstract.
+
 ## Project Structure
 
 ### Code
@@ -44,7 +45,6 @@ Contains the code for the project
     ##### Contains code for converting raw data to TFrecord for better performance using tf.data API
     Change the addresses in TFrecord_writer.py according to your system.
     Run TFrecord_writer.py to convert image and label dataset to a .tfrecords file
-    Run TFrecord\\_writer\\_augment.py to augment and convert the images and label dataset to a .tfrecords file
 
 * #### Train
     ##### Contains code for training the data, resnet model and to plot the model metrics
