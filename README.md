@@ -44,7 +44,7 @@ Contains the code for the project
     ##### Contains code for converting raw data to TFrecord for better performance using tf.data API
     Change the addresses in TFrecord_writer.py according to your system.
     Run TFrecord_writer.py to convert image and label dataset to a .tfrecords file
-    Run TFrecord\\_writer\\_augment.py to augment and convert the images and label dataset to a .tfrecords file
+    Run TFrecord\_writer\_augment.py to augment and convert the images and label dataset to a .tfrecords file
 
 * #### Train
     ##### Contains code for training the data, resnet model and to plot the model metrics
