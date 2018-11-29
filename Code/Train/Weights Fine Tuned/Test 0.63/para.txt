@@ -1,0 +1,16 @@
+decay rate 0.1 at 10
+weights 4,1
+trainable -34
+
+Epoch 00033: LearningRateScheduler reducing learning rate to 9.999999747378752e-06.
+98/98 [==============================] - 22s 222ms/step - loss: 0.2927 - acc: 0.9424 - val_loss: 1.1682 - val_acc: 0.7333
+
+Metrics for Epoch
+Confusion Matrix:
+ [[386  97]
+ [ 63  54]]
+Recall:  0.46153846153846156
+Precision:  0.3576158940397351
+F1_score:  0.4029850746268657
+ROC_AUC_score:  0.6303551520942826
+

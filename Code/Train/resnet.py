@@ -18,7 +18,7 @@ from tensorflow.keras.layers import (
 
 def _bn_relu(input):
     """"Helper to build BN->relu block"""
-
+    
     norm = BatchNormalization(axis = CHANNEL_AXIS)(input)
     return Activation("relu")(norm)
 
@@ -30,32 +30,28 @@ def _conv_bn_relu(**conv_params):
     kernel_initializer = conv_params.setdefault("kernel_initializer", "he_normal")
     padding = conv_params.setdefault("padding", "same")
     kernel_regularizer = conv_params.setdefault("kernel_regularizer", tf.keras.regularizers.l2(1.e-4))
-
+    
     def f(input):
         conv = Conv2D(filters = filters, kernel_size = kernel_size,
                      strides = strides, padding = padding,
                      kernel_initializer = kernel_initializer,
                      kernel_regularizer=kernel_regularizer)(input)
         return _bn_relu(conv)
-
-
-    return f
-
+    
     return f    
 
-
 def _bn_relu_conv(**conv_params):
-
+    
     """Helper to build a BN -> relu -> conv block.
     This is an improved scheme proposed in http://arxiv.org/pdf/1603.05027v2.pdf"""
-
+    
     filters = conv_params["filters"]
     kernel_size = conv_params["kernel_size"]
     strides = conv_params.setdefault("strides", (1, 1))
     kernel_initializer = conv_params.setdefault("kernel_initializer", "he_normal")
     padding = conv_params.setdefault("padding", "same")
     kernel_regularizer = conv_params.setdefault("kernel_regularizer",tf.keras.regularizers.l2(1.e-4))
-
+    
     def f(input):
         activation = _bn_relu(input)
         return Conv2D(filters=filters, kernel_size=kernel_size,
@@ -67,13 +63,13 @@ def _bn_relu_conv(**conv_params):
 
 def _shortcut(input, residual):
     """Adds a shortcut between input and residual block and merges them with "sum"""
-
+    
     input_shape = tf.keras.backend.int_shape(input)
     residual_shape = tf.keras.backend.int_shape(residual)
     stride_width = int(round(input_shape[ROW_AXIS] / residual_shape[ROW_AXIS]))
     stride_height = int(round(input_shape[COL_AXIS] / residual_shape[COL_AXIS]))
     equal_channels = input_shape[CHANNEL_AXIS] == residual_shape[CHANNEL_AXIS]
-
+    
     shortcut = input
     # 1 X 1 conv if shape is different. Else identity.
     if stride_width > 1 or stride_height > 1 or not equal_channels:
@@ -158,6 +154,7 @@ def _handle_dim_ordering():
     ROW_AXIS = 1
     COL_AXIS = 2
     CHANNEL_AXIS = 3
+    
 
 def _get_block(identifier):
     if isinstance(identifier, six.string_types):
@@ -187,7 +184,7 @@ class ResnetBuilder(object):
             raise Exception("Input shape should be a tuple (nb_channels, nb_rows, nb_cols)")
 
         # Permute dimension order if necessary
-
+        
         input_shape = (input_shape[1], input_shape[2], input_shape[0])
 
         # Load function from str if needed.
