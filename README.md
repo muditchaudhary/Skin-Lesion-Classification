@@ -36,7 +36,7 @@ The number 1 = lesion is seborrheic keratosis
 The number 0 = lesion is melanoma or nevus
 Malignancy diagnosis data were obtained from expert consensus and pathology report information.
 ## Project Structure
-
+For the report see Report.pdf
 ### Code
 Contains the code for the project
 
@@ -45,16 +45,22 @@ Contains the code for the project
     Change the addresses in TFrecord_writer.py according to your system.
     Run TFrecord_writer.py to convert image and label dataset to a .tfrecords file
     Run TFrecord\_writer\_augment.py to augment and convert the images and label dataset to a .tfrecords file
+    Run TFrecord\_writer\_augment\_addPositives.py to augment and convert just the positive images & labels to a .tfrecords file. This is done to balance the unbalanced dataset by increasing the count of the underrepresented category.
+    Run Sanity\_check.py to check the images and labels from .tfrecords file 
 
 * #### Train
-    ##### Contains code for training the data, resnet model and to plot the model metrics
+    ##### Contains code for training the data, resnet model and to plot the model metrics. The code will be refined for better readability in due course.
     * resnet.py: Contains the resnet model with 18, 34, 50, 101 and 152 layers
 
-    * Train.py: Contains the training code. Run this to train your model. (Data augmentation still being implemented)
-
+    * Train\_resnet.py: Contains the training code for resnet without fine-tuning. Run this to train your model.
+    
+    * Train\_Fine\_resnet.py: Contains the training code for resnet with pre-trained weights with fine-tuning. Run this to train your model.
+    
     * plot.py: Plots the graph for the model performance metrics from trainHistoryDict
 
-    * Primitive_train.py: Contains a primitive model to train your data
+    * Test.py: Tests the model using the saved weights from Train\_resnet.py. This is for the model without fine-tuning
+
+    *Test\_fine\_resnet.py: Tests the model using the saved weights from Train\_Fine\_resnet.py. This is for the model with fine-tuning.
 
     * train_resnet.py: Older version of Train.py
 
