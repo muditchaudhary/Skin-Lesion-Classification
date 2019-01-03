@@ -61,7 +61,7 @@ Contains the code for the project
 
     * Test.py: Tests the model using the saved weights from Train\_resnet.py. This is for the model without fine-tuning
 
-    *Test\_fine\_resnet.py: Tests the model using the saved weights from Train\_Fine\_resnet.py. This is for the model with fine-tuning.
+    * Test\_fine\_resnet.py: Tests the model using the saved weights from Train\_Fine\_resnet.py. This is for the model with fine-tuning.
 
     * train_resnet.py: Train custom ResNet from scratch.
 
