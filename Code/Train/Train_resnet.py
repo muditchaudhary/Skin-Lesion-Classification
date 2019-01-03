@@ -1,5 +1,9 @@
+"""
+To fine tune ResNet-50
+"""
 from __future__ import print_function
 
+#To reduce verbosity
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']= '3'
 
@@ -19,22 +23,31 @@ from functools import partial
 import sklearn.metrics
 from keras.callbacks import ModelCheckpoint
 
+#For FineTuning ResNet-50
+from tensorflow.keras.applications.resnet50 import ResNet50
+
 print(tf.__version__)
-lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-early_stopper = EarlyStopping(min_delta=0.001, patience=10)
-csv_logger = CSVLogger('resnet18_ISIC.csv')
+
+#Address for positive only dataset
 addPosPath = 'Imagenet/Seb_Training_Augmented_AddPos_Imagenet.tfrecords'
 
 def lr_scheduler(epoch,lr):
+    """
+    Learning rate scheduler decays the learning rate by factor of 0.1 every 10 epochs after 20 epochs
+    """
     decay_rate = 0.1
-    decay_step = 20
-    if epoch % decay_step == 0 and epoch:
+    if epoch==20:
+        return lr*decay_rate
+    elif epoch%10==0 and epoch >20:
         return lr*decay_rate
     return lr
 
-LRScheduler = keras.callbacks.LearningRateScheduler(lr_scheduler, verbose =1)
+LRScheduler = keras.callbacks.LearningRateScheduler(lr_scheduler,verbose=1)
 
 class Metrics(keras.callbacks.Callback):
+    """
+    Implementation of custom metrics: Precision, Recall, F-Measure and Confusion Matrix
+    """
     def on_train_begin(self, logs={}):
         self._data = []
 
@@ -65,9 +78,10 @@ class Metrics(keras.callbacks.Callback):
     def get_data(self):
         return self._data
 
-
-
 def _parse_function(proto):
+    """
+    Parser for TFRecord file
+    """
     keys_to_features = {'train/image': tf.FixedLenFeature([], tf.string),
     'train/label': tf.FixedLenFeature([], tf.int64)}
 
@@ -78,12 +92,17 @@ def _parse_function(proto):
 
 
 def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addPosPath, addPos):
+    """
+    Reads TFRecord and creates the dataset. Returns image and label dataset as tensors.
+    """
     dataset = tf.data.TFRecordDataset(filepath)
 
+    #If want to add augmented dataset, put augmentfilepath
     if augment is True:
         augmented = tf.data.TFRecordDataset(augmentfilepath)
         dataset = dataset.concatenate(augmented)
     
+    #If want to add positive only dataset, put addPosPath
     if addPos is True:
         added = tf.data.TFRecordDataset(addPosPath)
         dataset = dataset.concatenate(added)
@@ -102,6 +121,7 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
     image, label = iterator.get_next()
 
+    #Image reshaped to 224x224x3 to match ImageNet dataset
     image = tf.reshape(image, [-1,224,224,3])
     image = tf.cast(image, tf.float32)
     label = tf.one_hot(label, 2)
@@ -110,6 +130,9 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
 
 def w_categorical_crossentropy(y_true, y_pred, weights):
+    """
+    Implementation of Weighted Categorical Crossentropy Function for unbalanced datasets 
+    """
     nb_cl = len(weights)
     final_mask = K.zeros_like(y_pred[:, 0])
     y_pred_max = K.max(y_pred, axis=1)
@@ -132,14 +155,17 @@ IMSIZE = 224
 nb_classes = 2
 
 w_array = np.ones((2,2))
+
+#Weights for weighted loss function
 w_array[1,0] = 6
 w_array[0,1] = 1
-
 print(w_array)
 
-checkpoint = ModelCheckpoint('weights{epoch:03d}.h5',save_weights_only = True, period = 1)
+#For weight checkpoint
+checkpoint = ModelCheckpoint('weights_resnetb{epoch:03d}.h5',save_weights_only = True, period = 1)
 ncce = partial(w_categorical_crossentropy,weights=w_array)
 metrics = Metrics()
+
 model = resnet.ResnetBuilder.build_resnet_101((3, IMSIZE, IMSIZE), nb_classes)
 
 model.compile(loss=ncce,

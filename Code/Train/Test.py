@@ -1,5 +1,10 @@
+"""
+To test the performance of custom ResNet trained from scratch
+"""
+
 from __future__ import print_function
 
+#To reduce verbosity
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']= '3'
 
@@ -19,22 +24,17 @@ from functools import partial
 import sklearn.metrics
 from keras.callbacks import ModelCheckpoint
 
+#For FineTuning ResNet50
+from tensorflow.keras.applications.resnet50 import ResNet50
+
 print(tf.__version__)
-lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-early_stopper = EarlyStopping(min_delta=0.001, patience=10)
-csv_logger = CSVLogger('resnet18_ISIC.csv')
-addPosPath = 'Melanoma_Training_Augmented_AddPos_224_uint8.tfrecords'
 
-def lr_scheduler(epoch,lr):
-    decay_rate = 0.1
-    decay_step = 20
-    if epoch % decay_step == 0 and epoch:
-        return lr*decay_rate
-    return lr
 
-LRScheduler = keras.callbacks.LearningRateScheduler(lr_scheduler, verbose =1)
 
 class Metrics(keras.callbacks.Callback):
+    """
+    Implementation of custom metrics: Precision, Recall, F-Measure and Confusion Matrix
+    """
     def on_train_begin(self, logs={}):
         self._data = []
 
@@ -68,22 +68,30 @@ class Metrics(keras.callbacks.Callback):
 
 
 def _parse_function(proto):
+    """
+    Parser for TFRecord file
+    """
     keys_to_features = {'train/image': tf.FixedLenFeature([], tf.string),
     'train/label': tf.FixedLenFeature([], tf.int64)}
 
     parsed_features = tf.parse_single_example(proto, keys_to_features)
-    parsed_features['train/image'] = tf.decode_raw(parsed_features['train/image'], tf.uint8)
+    parsed_features['train/image'] = tf.decode_raw(parsed_features['train/image'], tf.float32)
 
     return parsed_features['train/image'], parsed_features["train/label"]
 
 
 def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addPosPath, addPos):
+    """
+    Reads TFRecord and creates the dataset. Returns image and label dataset as tensors.
+    """
     dataset = tf.data.TFRecordDataset(filepath)
 
+    #If want to add augmented dataset, put augmentfilepath
     if augment is True:
         augmented = tf.data.TFRecordDataset(augmentfilepath)
         dataset = dataset.concatenate(augmented)
     
+    #If want to add positive only dataset, put addPosPath
     if addPos is True:
         added = tf.data.TFRecordDataset(addPosPath)
         dataset = dataset.concatenate(added)
@@ -93,7 +101,7 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
     dataset = dataset.repeat()
 
     if shuffle is True:
-        dataset = dataset.shuffle(400)
+        dataset = dataset.shuffle(5000)
         dataset = dataset.shuffle(800)
 
     dataset = dataset.batch(batch_size)
@@ -102,6 +110,7 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
     image, label = iterator.get_next()
 
+    #Image reshaped to 224x224x3 to match ImageNet dataset
     image = tf.reshape(image, [-1,224,224,3])
     image = tf.cast(image, tf.float32)
     label = tf.one_hot(label, 2)
@@ -110,6 +119,9 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
 
 def w_categorical_crossentropy(y_true, y_pred, weights):
+    """
+    Implementation of Weighted Categorical Crossentropy Function for unbalanced datasets 
+    """
     nb_cl = len(weights)
     final_mask = K.zeros_like(y_pred[:, 0])
     y_pred_max = K.max(y_pred, axis=1)
@@ -120,11 +132,11 @@ def w_categorical_crossentropy(y_true, y_pred, weights):
         final_mask += (K.cast(weights[c_t, c_p],K.floatx()) * K.cast(y_pred_max_mat[:, c_p] ,K.floatx())* K.cast(y_true[:, c_t],K.floatx()))
     return K.categorical_crossentropy(y_true, y_pred) * final_mask
 
-ValImage, ValLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Melanoma_validation_FalseShuffle_224_uint8.tfrecords',150, False,'',False, '', False)
+ValImage, ValLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Imagenet/Melanoma_Validation_Imagenet.tfrecords',150, False,'',False, '', False)
 
-TestImage, TestLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Imagenet/Melanoma_Test_.tfrecords',150, False,'',False, '', False)
+TestImage, TestLabel = create_dataset('/home/mudit/Skin Lesion Classification/TFrecord_Datasets/Imagenet/Melanoma_Test_Imagenet.tfrecords',150, False,'',False, '', False)
 
-TestCSV = np.genfromtxt('ISIC-2017_Test_Part3_GroundTruth.csv', delimiter=',', usecols=(1), skip_header=1)
+TestCSV = np.genfromtxt('ISIC-2017_Validation_Part3_GroundTruth.csv', delimiter=',', usecols=(1), skip_header=1)
 TestCSV  = TestCSV.tolist()
 
 TestCSV = [1 if i == 1.0 else 0 for i in TestCSV]
@@ -132,24 +144,23 @@ TestCSV = [1 if i == 1.0 else 0 for i in TestCSV]
 IMSIZE = 224
 nb_classes = 2
 
-check=[]
-
-with tf.Session() as sess:
-    check= (sess.run(TestLabel).tolist())
-
-print(check)
-print("\n\n")
-print(TestCSV)
-
+#Weights for Weighted loss function
 w_array = np.ones((2,2))
 w_array[1,0] = 6
 w_array[0,1] = 1
 
 print(w_array)
 
+ncce = partial(w_categorical_crossentropy,weights=w_array)
+metrics = Metrics()
+
+input_tensor = keras.layers.Input(shape = (224,224,3))
+
 checkpoint = ModelCheckpoint('weights{epoch:03d}.h5',save_weights_only = True, period = 1)
 ncce = partial(w_categorical_crossentropy,weights=w_array)
 metrics = Metrics()
+
+#Loading ResNet Model
 model = resnet.ResnetBuilder.build_resnet_101((3, IMSIZE, IMSIZE), nb_classes)
 
 model.compile(loss=ncce,

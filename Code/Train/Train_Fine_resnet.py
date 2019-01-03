@@ -1,5 +1,9 @@
+"""
+To fine tune ResNet-50
+"""
 from __future__ import print_function
 
+#To reduce verbosity
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']= '3'
 
@@ -19,16 +23,18 @@ from functools import partial
 import sklearn.metrics
 from keras.callbacks import ModelCheckpoint
 
+#For FineTuning ResNet-50
 from tensorflow.keras.applications.resnet50 import ResNet50
 
 print(tf.__version__)
-lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-early_stopper = EarlyStopping(min_delta=0.001, patience=10)
-csv_logger = CSVLogger('resnet18_ISIC.csv')
+
+#Address for positive only dataset
 addPosPath = 'Imagenet/Seb_Training_Augmented_AddPos_Imagenet.tfrecords'
-addPosPath2 = 'Imagenet/Melanoma_Test_Imagenet.tfrecords'
 
 def lr_scheduler(epoch,lr):
+    """
+    Learning rate scheduler decays the learning rate by factor of 0.1 every 10 epochs after 20 epochs
+    """
     decay_rate = 0.1
     if epoch==20:
         return lr*decay_rate
@@ -39,6 +45,9 @@ def lr_scheduler(epoch,lr):
 LRScheduler = keras.callbacks.LearningRateScheduler(lr_scheduler,verbose=1)
 
 class Metrics(keras.callbacks.Callback):
+    """
+    Implementation of custom metrics: Precision, Recall, F-Measure and Confusion Matrix
+    """
     def on_train_begin(self, logs={}):
         self._data = []
 
@@ -69,9 +78,10 @@ class Metrics(keras.callbacks.Callback):
     def get_data(self):
         return self._data
 
-
-
 def _parse_function(proto):
+    """
+    Parser for TFRecord file
+    """
     keys_to_features = {'train/image': tf.FixedLenFeature([], tf.string),
     'train/label': tf.FixedLenFeature([], tf.int64)}
 
@@ -81,20 +91,21 @@ def _parse_function(proto):
     return parsed_features['train/image'], parsed_features["train/label"]
 
 
-def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addPosPath, addPos, addPath2, add2):
+def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addPosPath, addPos):
+    """
+    Reads TFRecord and creates the dataset. Returns image and label dataset as tensors.
+    """
     dataset = tf.data.TFRecordDataset(filepath)
 
+    #If want to add augmented dataset, put augmentfilepath
     if augment is True:
         augmented = tf.data.TFRecordDataset(augmentfilepath)
         dataset = dataset.concatenate(augmented)
     
+    #If want to add positive only dataset, put addPosPath
     if addPos is True:
         added = tf.data.TFRecordDataset(addPosPath)
         dataset = dataset.concatenate(added)
-
-    if add2 is True:
-        addMore = tf.data.TFRecordDataset(addPath2)
-        dataset = dataset.concatenate(addMore)
 
     dataset = dataset.map(_parse_function,num_parallel_calls=8)
 
@@ -110,6 +121,7 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
     image, label = iterator.get_next()
 
+    #Image reshaped to 224x224x3 to match ImageNet dataset
     image = tf.reshape(image, [-1,224,224,3])
     image = tf.cast(image, tf.float32)
     label = tf.one_hot(label, 2)
@@ -118,6 +130,9 @@ def create_dataset(filepath, batch_size, shuffle, augmentfilepath, augment, addP
 
 
 def w_categorical_crossentropy(y_true, y_pred, weights):
+    """
+    Implementation of Weighted Categorical Crossentropy Function for unbalanced datasets 
+    """
     nb_cl = len(weights)
     final_mask = K.zeros_like(y_pred[:, 0])
     y_pred_max = K.max(y_pred, axis=1)
@@ -128,8 +143,8 @@ def w_categorical_crossentropy(y_true, y_pred, weights):
         final_mask += (K.cast(weights[c_t, c_p],K.floatx()) * K.cast(y_pred_max_mat[:, c_p] ,K.floatx())* K.cast(y_true[:, c_t],K.floatx()))
     return K.categorical_crossentropy(y_true, y_pred) * final_mask
 
-trainImage, trainLabel = create_dataset('Imagenet/Seb_Training_Imagenet.tfrecords', 32, True, 'Imagenet/Seb_Training_Augmented_Imagenet.tfrecords', True, addPosPath, True,addPosPath2,False)
-valImage, valLabel = create_dataset('Imagenet/Seb_Test_Imagenet.tfrecords',600, False,'',False, '', False,'',False)
+trainImage, trainLabel = create_dataset('Imagenet/Seb_Training_Imagenet.tfrecords', 32, True, 'Imagenet/Seb_Training_Augmented_Imagenet.tfrecords', True, addPosPath, True)
+valImage, valLabel = create_dataset('Imagenet/Seb_Test_Imagenet.tfrecords',600, False,'',False, '', False)
 
 Test = np.genfromtxt('ISIC-2017_Validation_Part3_GroundTruth.csv', delimiter=',', usecols=(1), skip_header=1)
 Test  = Test.tolist()
@@ -141,21 +156,19 @@ nb_classes = 2
 
 w_array = np.ones((2,2))
 
-#Can change these values
-
+#Weights for weighted loss function
 w_array[1,0] = 6
 w_array[0,1] = 1
-
-
 print(w_array)
 
+#For weight checkpoint
 checkpoint = ModelCheckpoint('weights_resnetb{epoch:03d}.h5',save_weights_only = True, period = 1)
 ncce = partial(w_categorical_crossentropy,weights=w_array)
 metrics = Metrics()
 
 input_tensor = keras.layers.Input(shape = (224,224,3))
 
-
+#Loading the model
 model = ResNet50(input_tensor= input_tensor,weights='imagenet',include_top=False)
 #34 is full 5_x block -96 is full 4_x block -74 half 4_x
 for layer in model.layers[:-96]:

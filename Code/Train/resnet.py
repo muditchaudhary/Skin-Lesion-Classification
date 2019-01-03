@@ -1,3 +1,9 @@
+"""
+ResNet model from: https://github.com/raghakot/keras-resnet/blob/master/resnet.py
+Modified by Mudit Chaudhary      
+"""
+
+
 from __future__ import division
 import tensorflow as tf
 from tensorflow import keras
