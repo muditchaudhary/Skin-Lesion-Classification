@@ -65,4 +65,4 @@ Contains the code for the project
 
     * train_resnet.py: Train custom ResNet from scratch.
 
-This project is conducted by Mudit Chaudhary (muditchaudhary7@gmail,com) and Jiyeon Byun (ivjiyeonb@gmail.com) under the supervision of Prof. K.S. Leung and Mr. FU Xinyu.
+This project is conducted by Mudit Chaudhary (muditchaudhary7@gmail.com) and Jiyeon Byun (ivjiyeonb@gmail.com) under the supervision of Prof. K.S. Leung and Mr. FU Xinyu.
