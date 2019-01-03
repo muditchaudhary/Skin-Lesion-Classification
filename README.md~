@@ -37,7 +37,6 @@ The number 0 = lesion is melanoma or nevus
 Malignancy diagnosis data were obtained from expert consensus and pathology report information.
 ## Project Structure
 For the report see Report.pdf
-Contains detailed explanation, results and conclusion.
 ### Code
 Contains the code for the project
 
@@ -50,7 +49,7 @@ Contains the code for the project
     Run Sanity\_check.py to check the images and labels from .tfrecords file 
 
 * #### Train
-    ##### Contains code for training the data, resnet model and to plot the model metrics.
+    ##### Contains code for training the data, resnet model and to plot the model metrics. The code will be refined for better readability in due course.
     * resnet.py: Contains the resnet model with 18, 34, 50, 101 and 152 layers
 
     * Train\_resnet.py: Contains the training code for resnet without fine-tuning. Run this to train your model.
@@ -63,5 +62,5 @@ Contains the code for the project
 
     *Test\_fine\_resnet.py: Tests the model using the saved weights from Train\_Fine\_resnet.py. This is for the model with fine-tuning.
 
-    * train_resnet.py: Train custom ResNet from scratch.
+    * train_resnet.py: Older version of Train.py
 
